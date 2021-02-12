@@ -38,7 +38,7 @@ class Post extends Model
     {
         return substr($this->body,0,140);
     }
-/*
+
     public function getGetImageAttribute()
     {
 
@@ -46,6 +46,6 @@ class Post extends Model
             return url("storage/$this->image");
 
     }
-*/
+
 
 }

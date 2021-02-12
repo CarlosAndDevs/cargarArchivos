@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Post;
 use App\Http\Requests\PostRequest;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class PostController extends Controller
 {
@@ -16,6 +17,7 @@ class PostController extends Controller
      */
     public function index()
     {
+        //
         $posts = Post::latest()->get();
 
         return view('posts.index',compact('posts'));
@@ -37,32 +39,21 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-          //salvar
-          $post = Post::create([
-            'user_id' => auth()->user()->id
-        ] + $request->all());
-    //image
-        if($request->file('file')){
-           $post->image = $request->file('file')->store('posts', 'public');
-           $post->save();
-        }
+        //salvar
+            $post = Post::create([
+                'user_id' => auth()->user()->id
+            ] + $request->all());
+        //image
+            if($request->file('file')){
+               $post->image = $request->file('file')->store('posts', 'public');
+               $post->save();
+            }
 
 
-    //retornar
-    return back()->with('status','Creado con éxito');
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Post $post)
-    {
-        //
+        //retornar
+        return back()->with('status','Creado con éxito');
     }
 
     /**
@@ -74,6 +65,7 @@ class PostController extends Controller
     public function edit(Post $post)
     {
         //
+        return view('posts.edit', compact('post'));
     }
 
     /**
@@ -83,9 +75,18 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(PostRequest $request, Post $post)
     {
-        //
+        $post->update($request->all());
+
+        if($request->file('file')){
+            //Eliminar imagen
+            Storage::disk('public')->delete($post->image);
+            $post->image = $request->file('file')->store('posts', 'public');
+            $post->save();
+         }
+
+            return back()->with('status','Actualizado con exito');
     }
 
     /**
@@ -96,6 +97,12 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+
+        //eliminación de la imagen al eliminar el post
+        Storage::disk('public')->delete($post->image);
+        $post->delete();
+
+        return back()->with('status','Eliminado con éxito');
+
     }
 }
